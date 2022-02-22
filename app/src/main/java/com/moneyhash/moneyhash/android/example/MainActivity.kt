@@ -30,9 +30,9 @@ class MainActivity : AppCompatActivity() {
                     is PaymentStatus.Unknown -> {
                         tv.text = "Unknown"
                     }
-//                    is PaymentStatus.Cancelled -> {
-//                        tv.text = "Cancelled"
-//                    }
+                    is PaymentStatus.Cancelled -> {
+                        tv.text = "Cancelled"
+                    }
                 }
             }
         }
@@ -42,7 +42,7 @@ class MainActivity : AppCompatActivity() {
 
         tv = findViewById(R.id.text_view)
         tv.text = "Click Here to start Payment Flow"
-        val paymentId = "39R2Y9N"
+        val paymentId = "39R2Y9N" // Generated payment Id from your BE
 
         tv.setOnClickListener {
             MoneyHash.INSTANCE.start(paymentId, paymentResultContract)
