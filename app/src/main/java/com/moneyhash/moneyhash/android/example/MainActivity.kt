@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.TextView
 import com.moneyhash.sdk.android.MoneyHash
+import com.moneyhash.sdk.android.MoneyHashEnvironment
 import com.moneyhash.sdk.android.PaymentResultContract
 import com.moneyhash.sdk.android.PaymentStatus
 
@@ -43,6 +44,8 @@ class MainActivity : AppCompatActivity() {
         tv = findViewById(R.id.text_view)
         tv.text = "Click Here to start Payment Flow"
         val paymentId = "39R2Y9N" // Generated payment Id from your BE
+
+        MoneyHash.INSTANCE.setEnvironment(MoneyHashEnvironment.STAGING)
 
         tv.setOnClickListener {
             MoneyHash.INSTANCE.start(paymentId, paymentResultContract)
