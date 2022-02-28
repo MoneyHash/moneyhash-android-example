@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
 
         tv = findViewById(R.id.text_view)
         tv.text = "Click Here to start Payment Flow"
-        val paymentId = "39R2Y9N" // Generated payment Id from your BE
+        val paymentId = "" // Generated payment Id from your BE
 
         MoneyHash.INSTANCE.setEnvironment(MoneyHashEnvironment.STAGING)
 
