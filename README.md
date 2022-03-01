@@ -14,7 +14,7 @@ You can learn more about us by visiting [our website](https://www.moneyhash.io/)
 
 ## Configuration
 
-[![](https://jitpack.io/v/io.moneyHash/Android.svg)](https://jitpack.io/#io.moneyHash/Android)
+[![Jitpack](https://jitpack.io/v/io.moneyHash/Android.svg)](https://jitpack.io/#io.moneyHash/Android)
 
 Add `moneyhash:android` to your `build.gradle` dependencies.
 
