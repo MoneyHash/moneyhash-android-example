@@ -76,7 +76,7 @@ MoneyHash.INSTANCE.start(paymentIntentId, paymentResultContract)
 ## Payment statues
 When the payment is done, a callback is fired with the payment status which indicate the current status for your payment intent
 
-Status |
+Status | #
 --- | ---
 Error | Means there was an error while processing the payment and more details about the errors will be found inside errors data
 Success | Means the payment processing is succeeded and completed
