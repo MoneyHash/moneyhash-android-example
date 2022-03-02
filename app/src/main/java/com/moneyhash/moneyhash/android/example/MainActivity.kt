@@ -2,7 +2,10 @@ package com.moneyhash.moneyhash.android.example
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
+import android.widget.Toast
 import com.moneyhash.sdk.android.MoneyHash
 import com.moneyhash.sdk.android.MoneyHashEnvironment
 import com.moneyhash.sdk.android.PaymentResultContract
@@ -10,29 +13,31 @@ import com.moneyhash.sdk.android.PaymentStatus
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var tv: TextView
+    lateinit var statusTextview: TextView
+    lateinit var idEditText: EditText
+    lateinit var actionButton: Button
 
     private val paymentResultContract =
         registerForActivityResult(PaymentResultContract()) { result ->
             if(result != null) {
                 when(result){
                     is PaymentStatus.Error -> {
-                        tv.text = result.errors.joinToString()
+                        statusTextview.text = result.errors.joinToString()
                     }
                     is PaymentStatus.Failed -> {
-                        tv.text = "Failed"
+                        statusTextview.text = "Failed"
                     }
                     is PaymentStatus.RequireExtraAction -> {
-                        tv.text = result.actions.joinToString()
+                        statusTextview.text = result.actions.joinToString()
                     }
                     is PaymentStatus.Success -> {
-                        tv.text = "Success"
+                        statusTextview.text = "Success"
                     }
                     is PaymentStatus.Unknown -> {
-                        tv.text = "Unknown"
+                        statusTextview.text = "Unknown"
                     }
                     is PaymentStatus.Cancelled -> {
-                        tv.text = "Cancelled"
+                        statusTextview.text = "Cancelled"
                     }
                 }
             }
@@ -41,14 +46,17 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        tv = findViewById(R.id.text_view)
-        tv.text = "Click Here to start Payment Flow"
-        val paymentId = "" // Generated payment Id from your BE
+        statusTextview = findViewById(R.id.status_textview)
+        idEditText = findViewById(R.id.id_edittext)
+        actionButton = findViewById(R.id.action_button)
 
-        MoneyHash.INSTANCE.setEnvironment(MoneyHashEnvironment.STAGING)
-
-        tv.setOnClickListener {
-            MoneyHash.INSTANCE.start(paymentId, paymentResultContract)
+        actionButton.setOnClickListener {
+            val paymentIntentId = idEditText.text.toString()
+            if(paymentIntentId.isEmpty()){
+                Toast.makeText(this, "Please enter valid payment intent id", Toast.LENGTH_LONG).show()
+            } else {
+                MoneyHash.INSTANCE.start(paymentIntentId, paymentResultContract)
+            }
         }
     }
 }
