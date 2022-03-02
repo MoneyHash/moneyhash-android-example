@@ -26,7 +26,7 @@ dependencies {
 }
 ```
 
-## How to generate payment intent id
+## How to generate payment intent id (paymentIntentId)
 Payment intent id is a unique identifier that is associated with a payment intent, you don't have to care whether it is (is_live) payment or not, this is will be handled automatically from your backend api_key
 For more information about payment intents and how to generate it you can check the [documentation](https://moneyhash.github.io/api#create-a-payment-intent)
 
@@ -70,13 +70,13 @@ To start the payment flow you need to get the payment id from your backend and s
 
 3- start the payment flow
 ```kotlin
-MoneyHash.INSTANCE.start(paymentId, paymentResultContract)
+MoneyHash.INSTANCE.start(paymentIntentId, paymentResultContract)
 ```
 
 ## Payment statues
 When the payment is done, a callback is fired with the payment status which indicate the current status for your payment intent
 
-Status | #1
+Status |
 --- | ---
 Error | Means there was an error while processing the payment and more details about the errors will be found inside errors data
 Success | Means the payment processing is succeeded and completed
