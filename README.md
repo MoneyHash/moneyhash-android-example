@@ -30,7 +30,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.moneyHash:android:0.0.3'
+    implementation 'io.moneyHash:android:0.0.4'
 }
 ```
 
@@ -61,22 +61,23 @@ To start the payment flow use the Payment Intent ID from the step above as a par
             if(result != null) {
                 when(result){
                     is PaymentStatus.Error -> {
-                        tv.text = result.errors.joinToString()
+                        errorsData = result.errors.joinToString()
                     }
                     is PaymentStatus.Failed -> {
-                        tv.text = "Failed"
+                        paymentResult = result.result
                     }
                     is PaymentStatus.RequireExtraAction -> {
-                        tv.text = result.actions.joinToString()
+                        paymentResult = result.result
+                        requiredActions = result.actions
                     }
                     is PaymentStatus.Success -> {
-                        tv.text = "Success"
+                        paymentResult = result.result
                     }
                     is PaymentStatus.Unknown -> {
-                        tv.text = "Unknown"
+                        status = "Unknown"
                     }
                     is PaymentStatus.Cancelled -> {
-                        tv.text = "Cancelled"
+                        status = "Cancelled"
                     }
                 }
             }

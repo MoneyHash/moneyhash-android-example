@@ -25,14 +25,15 @@ class MainActivity : AppCompatActivity() {
                         statusTextview.text = result.errors.joinToString()
                     }
                     is PaymentStatus.Failed -> {
-                        statusTextview.text = "Failed"
+                        statusTextview.text = "Failed\n${result.result}"
                     }
                     is PaymentStatus.RequireExtraAction -> {
-                        statusTextview.text = result.actions.joinToString()
+                        statusTextview.text = "RequireExtraAction\n${result.actions.joinToString()}\n${result.result}"
                     }
                     is PaymentStatus.Success -> {
-                        statusTextview.text = "Success"
+                        statusTextview.text = "Success\n${result.result}"
                     }
+
                     is PaymentStatus.Unknown -> {
                         statusTextview.text = "Unknown"
                     }
