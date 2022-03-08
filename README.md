@@ -30,7 +30,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.moneyHash:android:0.0.4'
+    implementation 'io.moneyHash:android:0.0.6'
 }
 ```
 

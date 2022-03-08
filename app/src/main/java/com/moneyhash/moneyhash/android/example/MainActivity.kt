@@ -7,7 +7,6 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import com.moneyhash.sdk.android.MoneyHash
-import com.moneyhash.sdk.android.MoneyHashEnvironment
 import com.moneyhash.sdk.android.PaymentResultContract
 import com.moneyhash.sdk.android.PaymentStatus
 
