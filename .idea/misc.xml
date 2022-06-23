@@ -3,6 +3,7 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="../../../../../../.gradle/caches/transforms-3/23a041683389c4a18847cc04e9a81841/transformed/jetified-android-0.1.0/res/layout/fragment_intent_result.xml" value="0.1" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.38813405797101447" />
       </map>
     </option>

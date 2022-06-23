@@ -7,8 +7,8 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import com.moneyhash.sdk.android.MoneyHash
-import com.moneyhash.sdk.android.PaymentResultContract
-import com.moneyhash.sdk.android.PaymentStatus
+import com.moneyhash.sdk.android.payment.PaymentResultContract
+import com.moneyhash.sdk.android.payment.PaymentStatus
 
 class MainActivity : AppCompatActivity() {
 
@@ -25,6 +25,9 @@ class MainActivity : AppCompatActivity() {
                     }
                     is PaymentStatus.Failed -> {
                         statusTextview.text = "Failed\n${result.result}"
+                    }
+                    is PaymentStatus.Redirect -> {
+                        statusTextview.text = "Redirect\n${result.redirectUrl}"
                     }
                     is PaymentStatus.RequireExtraAction -> {
                         statusTextview.text = "RequireExtraAction\n${result.actions.joinToString()}\n${result.result}"
@@ -55,7 +58,7 @@ class MainActivity : AppCompatActivity() {
             if(paymentIntentId.isEmpty()){
                 Toast.makeText(this, "Please enter valid payment intent id", Toast.LENGTH_LONG).show()
             } else {
-                MoneyHash.INSTANCE.start(paymentIntentId, paymentResultContract)
+                MoneyHash.startPaymentFlow(paymentIntentId, paymentResultContract)
             }
         }
     }

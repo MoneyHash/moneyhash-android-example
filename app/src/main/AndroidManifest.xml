@@ -20,7 +20,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name="com.moneyhash.sdk.android.PaymentActivity"
+        <activity android:name="com.moneyhash.sdk.android.payment.PaymentActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"/>
 
     </application>
