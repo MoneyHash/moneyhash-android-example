@@ -22,6 +22,8 @@
 
         <activity android:name="com.moneyhash.sdk.android.payment.PaymentActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"/>
+        <activity android:name="com.moneyhash.sdk.android.payout.PayoutActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"/>
 
     </application>
 

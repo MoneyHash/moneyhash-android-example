@@ -35,7 +35,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.moneyHash:android:0.1.0'
+    implementation 'io.moneyHash:android:0.1.2'
 }
 ```
 
@@ -86,6 +86,7 @@ PaymentResultContract instance like below:
                   }
                   is PaymentStatus.Failed -> {
                       paymentResult = result.result
+                      errors = result.errors
                   }
                   is PaymentStatus.Redirect -> {
                       paymentResult = result.result
@@ -137,6 +138,7 @@ PayoutResultContract instance like below:
                   }
                   is PayoutStatus.Failed -> {
                       payoutStatus = result.result
+                      errors = result.errors
                   }
                   is PayoutStatus.Redirect -> {
                       payoutStatus = result.result
