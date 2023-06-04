@@ -6,9 +6,10 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
-import com.moneyhash.sdk.android.MoneyHash
-import com.moneyhash.sdk.android.payment.PaymentResultContract
-import com.moneyhash.sdk.android.payment.PaymentStatus
+import com.moneyhash.sdk.android.common.IntentType
+import com.moneyhash.sdk.android.core.IntentContract
+import com.moneyhash.sdk.android.core.MoneyHashSDKBuilder
+import com.moneyhash.sdk.android.result.ResultType
 
 class MainActivity : AppCompatActivity() {
 
@@ -16,34 +17,9 @@ class MainActivity : AppCompatActivity() {
     lateinit var idEditText: EditText
     lateinit var actionButton: Button
 
-    private val paymentResultContract =
-        registerForActivityResult(PaymentResultContract()) { result ->
-            if(result != null) {
-                when(result){
-                    is PaymentStatus.Error -> {
-                        statusTextview.text = result.errors.joinToString()
-                    }
-                    is PaymentStatus.Failed -> {
-                        statusTextview.text = "Failed\n${result.result}"
-                    }
-                    is PaymentStatus.Redirect -> {
-                        statusTextview.text = "Redirect\n${result.redirectUrl}"
-                    }
-                    is PaymentStatus.RequireExtraAction -> {
-                        statusTextview.text = "RequireExtraAction\n${result.actions.joinToString()}\n${result.result}"
-                    }
-                    is PaymentStatus.Success -> {
-                        statusTextview.text = "Success\n${result.result}"
-                    }
+    private val resultContract =
+        registerForActivityResult(IntentContract()) { result ->
 
-                    is PaymentStatus.Unknown -> {
-                        statusTextview.text = "Unknown"
-                    }
-                    is PaymentStatus.Cancelled -> {
-                        statusTextview.text = "Cancelled"
-                    }
-                }
-            }
         }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,7 +34,13 @@ class MainActivity : AppCompatActivity() {
             if(paymentIntentId.isEmpty()){
                 Toast.makeText(this, "Please enter valid payment intent id", Toast.LENGTH_LONG).show()
             } else {
-                MoneyHash.startPaymentFlow(paymentIntentId, paymentResultContract)
+                MoneyHashSDKBuilder.build()
+                    .renderForm(
+                        intentId = idEditText.text.toString(),
+                        intentType = IntentType.Payment,
+                        launcher = resultContract,
+                        resultType = ResultType.RESULT_SCREEN_WITH_CALLBACK // Result type can be RESULT_SCREEN_WITH_CALLBACK or CALLBACK (to not render moneyhash success screen)
+                    )
             }
         }
     }

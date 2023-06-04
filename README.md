@@ -1,23 +1,5 @@
 # How to use MoneyHash Android
 
-## About MoneyHash
-
-MoneyHAsh is a Super-API infrastructure for payment orchestration and revenue operations in emerging
-markets. We provide a single integration to your network of pay-in and pay-out providers, and
-various other services that you can utilize and combine to build a unique custom payment stack. Our
-core features include:
-
-1. A single API/SDK integration for Pay-in & Pay-out
-2. Unified checkout embed compatible with all integrated providers
-3. Orchestration and routing capabilities to allow for optimal transaction route and to increase
-   authorization rates
-4. Micro-services to extend your stack capabilities such as subscription management, invoicing, and
-   payment links
-5. PCI-compliant card vault to store and tokenize sensitive customer and card information
-6. Central dashboard for a unified stack controls and transaction reporting
-
-You can learn more about us by visiting [our website](https://www.moneyhash.io/).
-
 ### Requirements
 
 * Android 5.0 (API level 21) and above
@@ -29,192 +11,275 @@ You can learn more about us by visiting [our website](https://www.moneyhash.io/)
 
 Add `moneyhash:android` to your `build.gradle` dependencies.
 
-```
+```groovy
 repositories {
     maven{ url "https://jitpack.io" }
 }
 
 dependencies {
-    implementation 'io.moneyHash:android:0.1.4'
+    implementation 'io.moneyHash:android:1.0.2'
 }
 ```
 
-Enable `databinding` in your project.
+Enable `viewBinding` in your project.
 
-```
-dataBinding {
-  enabled = true
+```groovy
+buildFeatures {
+  viewBinding true
 }
 ```
 
-### Create a Payment/Payout Intent
+## How to use?
 
-You will need to create a Payment/Payout Intent and use it's ID to initiate the SDK, There are two
-ways to create a Payment/Payout Intent:
+- Create moneyHash instance using `MoneyHashSDKBuilder`
 
-- **Using The Sandbox**
+```Kotlin
+import com.moneyhash.sdk.android.core.MoneyHashSDKBuilder
+val moneyHash = MoneyHashSDKBuilder.build()
+```
 
-  Which is helpful to manually and quickly create a Payment/Payout Intent without having to running
-  any backend code. For more information about the Sandbox refer to
-  this [section](https://moneyhash.github.io/sandbox)
-- **Using The Payment Intent API**
+> MoneyHash SDK guides to for the actions required to be done, to have seamless integration through intent details `state`
 
-  This will be the way your backend server will eventually use to create a Payment/Payout Intents,
-  for more information refer to this [section](https://moneyhash.github.io/api)
+| state                             | Action                                                                                                                                                                                          |
+| :-------------------------------- |:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `METHOD_SELECTION`                | Use `moneyHash.getIntentMethod` to get different intent methods and render them natively with your own styles & use `moneyHash.proceedWithMethod` to proceed with one of them on user selection |
+| `INTENT_FORM`                     | Use `moneyHash.renderForm` to start the SDK flow to let MoneyHash handle the flow for you & listen for result by using IntentContract() for Activity result                                     |
+| `INTENT_PROCESSED`                | Render your successful confirmation UI with the intent details                                                                                                                                  |
+| `TRANSACTION_FAILED`              | Render your failure UI with the intent details                                                                                                                                                  |
+| `TRANSACTION_WAITING_USER_ACTION` | Render your pending actions confirmation UI with the intent details & `externalActionMessage` if exists on `Transaction`                                                                        |
+| `EXPIRED`                         | Render your intent expired UI                                                                                                                                                                   |
+| `CLOSED`                          | Render your intent closed UI                                                                                                                                                                    |
 
-### Usage
+- Get intent details based on the intent id and type (Payment/Payout)
 
-To start the payment flow use the Payment Intent ID from the step above as a parameter along with a
-PaymentResultContract instance like below:
+```kotlin
+moneyHash.getIntentDetails(intentId, IntentType.Payment, onSuccess = { intentDetails ->
+   // handle the intent details
+}, onFail = { throwable ->
+  // handle the error
+})
+```
 
-1- Add PaymentActivity to AndroidManifest.xml
+- Get intent available payment/payout methods, saved cards and customer balances
+
+```kotlin
+moneyHash.getIntentMethods(intentId, IntentType.Payment, onSuccess = { intentMethods ->
+   // handle the intent methods native UI
+}, onFail = { throwable ->
+  // handle the error
+})
+```
+
+- Proceed with a payment/payout method, card or wallet
+
+```kotlin
+moneyHash
+  .proceedWithMethod(
+    intentId = "intentId",
+    intentType = IntentType.Payment,
+    selectedMethodId = "methodId",
+    methodType = MethodType.EXPRESS_METHOD, // method type that returned from the intent methods
+    methodMetaData = MethodMetaData(
+      // optional and can be null
+      cvv = "cvv", // required for customer saved cards that requires cvv
+    ),
+    onSuccess = { intentMethods, intentDetails ->
+      // handle the intent methods native UI and updated intent details
+    }, onFail = { throwable ->
+      // handle the error
+    })
+```
+
+- Reset the selected method on and intent to null
+
+> Can be used for `back` button after method selection
+> or `retry` button on failed transaction UI to try a different
+> method by the user.
+
+```kotlin
+moneyHash
+  .resetSelectedMethod(
+    intentId = "intentId",
+    intentType = IntentType.Payment,
+    onSuccess = { intentMethods, intentDetails ->
+      // handle the intent methods native UI and updated intent details
+    }, onFail = { throwable ->
+      // handle the error
+    })
+```
+
+- Delete a customer saved card
+
+```kotlin
+moneyHash
+  .deleteSavedCard(
+    cardTokenId = "cardTokenId", // card token id that returned in savedCards list in IntentMethods
+    intentSecret = "intentSecret", // intent secret that returned in intent details
+    onSuccess = {
+      // card deleted successfully
+    }, onFail = { throwable ->
+      // handle the error
+    })
+```
+
+- Render SDK embed forms and payment/payout integrations
+
+> Must be called if `state` of an intent is `INTENT_FORM` to let MoneyHash handle the payment/payout. you can listen for completion or failure of an intent by providing using the IntentContract().
+> you can also use it directly to render the embed form for payment/payout without handling the methods selection native UI.
+
+Add PaymentActivity / PayoutActivity to AndroidManifest.xml
 
 ```xml
-
 <activity android:name="com.moneyhash.sdk.android.payment.PaymentActivity" />
 ```
 
-2- Setup the activity result contract
-
-```kotlin
-    private val paymentResultContract =
-      registerForActivityResult(PaymentResultContract()) { result ->
-          if (result != null) {
-              when (result) {
-                  is PaymentStatus.Error -> {
-                      errorsData = result.errors.joinToString()
-                  }
-                  is PaymentStatus.Failed -> {
-                      paymentResult = result.result
-                      errors = result.errors
-                  }
-                  is PaymentStatus.Redirect -> {
-                      paymentResult = result.result
-                      redirectUrl = result.redirectUrl
-                  }
-                  is PaymentStatus.RequireExtraAction -> {
-                      paymentResult = result.result
-                      requiredActions = result.actions
-                  }
-                  is PaymentStatus.Success -> {
-                      paymentResult = result.result
-                  }
-                  is PaymentStatus.Unknown -> {
-                      status = "Unknown"
-                  }
-                  is PaymentStatus.Cancelled -> {
-                      status = "Cancelled"
-                  }
-              }
-          }
-      }
-```
-
-3- Start the payment flow
-
-```kotlin
-MoneyHash.startPaymentFlow(paymentIntentId, paymentResultContract)
-```
-
-To start the payout flow use the Payout Intent ID from the step above as a parameter along with a
-PayoutResultContract instance like below:
-
-1- Add PayoutActivity to AndroidManifest.xml
-
 ```xml
-
 <activity android:name="com.moneyhash.sdk.android.payout.PayoutActivity" />
 ```
 
-2- Setup the activity result contract
-
 ```kotlin
-    private val payoutResultContract =
-      registerForActivityResult(PayoutResultContract()) { result ->
-          if (result != null) {
-              when (result) {
-                  is PayoutStatus.Error -> {
-                      errorsData = result.errors.joinToString()
-                  }
-                  is PayoutStatus.Failed -> {
-                      payoutStatus = result.result
-                      errors = result.errors
-                  }
-                  is PayoutStatus.Redirect -> {
-                      payoutStatus = result.result
-                      redirectUrl = result.redirectUrl
-                  }
-                  is PayoutStatus.RequireExtraAction -> {
-                      payoutStatus = result.result
-                      requiredActions = result.actions
-                  }
-                  is PayoutStatus.Success -> {
-                      payoutStatus = result.result
-                  }
-                  is PayoutStatus.Unknown -> {
-                      status = "Unknown"
-                  }
-                  is PaymentStatus.Cancelled -> {
-                      status = "Cancelled"
-                  }
-              }
-          }
-      }
+ private val resultContract =
+  registerForActivityResult(IntentContract()) { result ->
+
+  }
+
+moneyHash
+  .renderForm(
+    intentId = "intentId",
+    intentType = IntentType.Payment,
+    launcher = resultContract,
+    resultType = ResultType.RESULT_SCREEN_WITH_CALLBACK // Result type can be RESULT_SCREEN_WITH_CALLBACK or CALLBACK (to not render moneyhash success screen)
+  )
 ```
 
-3- Start the payment flow
+## Responses
+
+### Methods Error Response
 
 ```kotlin
-MoneyHash.startPayoutFlow(payoutIntentId, payoutResultContract)
+enum class IntentType {
+    Payment,
+    Payout;
+}
+
+// Intent methods 
+
+data class IntentMethods(
+  val customerBalances: List<CustomerBalance>? = null,
+  val paymentMethods: List<PaymentMethod>? = null,
+  val expressMethods: List<ExpressMethod>? = null,
+  val savedCards: List<SavedCard>? = null,
+  val payoutMethods: List<PayoutMethod>? = null
+)
+
+data class CustomerBalance(
+  val balance: Double? = null,
+  val id: String? = null,
+  val icon: String? = null,
+  val isSelected: Boolean? = null,
+  val type: MethodType = MethodType.CUSTOMER_BALANCE
+)
+
+data class PaymentMethod(
+  val id: String? = null,
+  val title: String? = null,
+  val isSelected: Boolean? = null,
+  val confirmationRequired: Boolean? = null,
+  val icons: List<String>? = null,
+  val type: MethodType? = MethodType.PAYMENT_METHOD
+)
+
+data class PayoutMethod(
+  val id: String? = null,
+  val title: String? = null,
+  val isSelected: Boolean? = null,
+  val confirmationRequired: Boolean? = null,
+  val icons: List<String>? = null,
+  val type: MethodType? = MethodType.PAYOUT_METHOD
+)
+
+data class ExpressMethod(
+  val id: String? = null,
+  val title: String? = null,
+  val isSelected: Boolean? = null,
+  val confirmationRequired: Boolean? = null,
+  val icons: List<String>? = null,
+  val type: MethodType? = MethodType.EXPRESS_METHOD
+)
+
+data class SavedCard(
+  val id: String? = null,
+  val brand: String? = null,
+  val last4: String? = null,
+  val expiryMonth: String? = null,
+  val expiryYear: String? = null,
+  val country: String? = null,
+  val logo: String? = null,
+  val requireCvv: Boolean? = null,
+  val cvvConfig: CvvConfig? = null,
+  val type: MethodType? = MethodType.SAVE_CARD
+)
+
+data class CvvConfig(
+  val digitsCount: Int? = 0
+)
+
+// Intent Details
+
+data class IntentDetails(
+  val selectedMethod: String? = null,
+  val intent: IntentData? = null,
+  val walletBalance: Double? = null,
+  val transaction: TransactionData? = null,
+  val redirect: RedirectData? = null,
+  val state: State? = null
+)
+
+data class TransactionData(
+  val billingData: String? = null,
+  val amount: Double? = null,
+  val externalActionMessage: List<String>? = null,
+  val amountCurrency: String? = null,
+  val id: String? = null,
+  val methodName: String? = null,
+  val method: String? = null,
+  val createdDate: String? = null,
+  val status: String? = null,
+  val customFields: String? = null,
+  val providerTransactionFields: String? = null,
+  val customFormAnswers: String? = null
+)
+
+data class IntentData(
+  val amount: AmountData? = null,
+  val secret: String? = null,
+  val expirationDate: String? = null,
+  val isLive: Boolean? = null,
+  val id: String? = null,
+  val status: IntentStatus? = null
+)
+
+data class AmountData(
+  val value: String? = null,
+  val formatted: Double? = null,
+  val currency: String? = null,
+  val maxPayout: Double? = null,
+)
+
+data class RedirectData(
+  val redirectUrl: String? = null
+)
+
+// Method Meta Data
+data class MethodMetaData(
+  val cvv: String? = null
+)
 ```
 
-### Result screen
-If you need to show result screen to the user instead of getting callback directly you can start the flow as following 
-
-```kotlin
-MoneyHash.startPaymentFlow(paymentIntentId, paymentResultContract, ResultType.RESULT_SCREEN_WITH_CALLBACK)
-```
-
-OR
-
-```kotlin
-MoneyHash.startPayoutFlow(payoutIntentId, payoutResultContract, ResultType.RESULT_SCREEN_WITH_CALLBACK)
-```
-
-If you just need the callback you can do the following 
-
-```kotlin
-MoneyHash.startPaymentFlow(paymentIntentId, paymentResultContract, ResultType.CALLBACK)
-```
-
-OR
-
-```kotlin
-MoneyHash.startPayoutFlow(payoutIntentId, payoutResultContract, ResultType.CALLBACK)
-```
-
-### Payment Statuses
-
-Once your customer finishes adding the payment information they will reach one of the following
-statuses, and a callback is fired with the payment status which indicate the current status of your
-payment.
-
-Status | #
---- | ---
-Error | There was an error while processing the payment and more details about the errors will be found inside errors data.
-Success | The payment is Successful.
-RequireExtraAction | That payment flow is done and the customer needs to do some extra actions off the system, a list of the actions required by the customer will be found inside the actions data, and it should be rendered to the customer in your app.
-Failed | There was an error while processing the payment.
-Unknown | There was an unknown state received and this should be checked from your MoneyHash dashboard.
-Cancelled | The customer cancelled the payment flow by clicking back or cancel.
-Redirect | That payment flow is done and the customer needs to be redirect to `redirectUrl`.
 
 ### Proguarding
 MoneyHash Android SDK is proguard friendly and the rules is added by default so you don't need to
 care about adding extra proguard rules
 
 ### Questions and Issues
-
-Please provide any feedback via
-a [GitHub Issue](https://github.com/MoneyHash/moneyhash-android-example/issues/new?template=bug_report.md)
-.
+Please provide any feedback via a [GitHub Issue](https://github.com/MoneyHash/moneyhash-android-example/issues/new?template=bug_report.md).
