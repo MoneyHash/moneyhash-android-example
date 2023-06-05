@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.moneyHash:android:1.0.2'
+    implementation 'io.moneyHash:android:1.0.3'
 }
 ```
 
