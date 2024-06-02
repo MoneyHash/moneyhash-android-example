@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.moneyHash:android:1.0.5'
+    implementation 'io.moneyHash:android:1.0.6'
 }
 ```
 
@@ -148,6 +148,7 @@ moneyHash
     intentId = "intentId",
     intentType = IntentType.Payment,
     launcher = resultContract,
+    embedStyle = embedStyle, // optional EmbedStyle object to customize the embed form UI (colors, fonts, etc) for the buttons, inputs, loader
     resultType = ResultType.RESULT_SCREEN_WITH_CALLBACK // Result type can be RESULT_SCREEN_WITH_CALLBACK or CALLBACK (to not render moneyhash success screen)
   )
 ```
